@@ -14,7 +14,7 @@
 
     <div class="mb-3">
       <label class="form-label">Content</label>
-      <div class="card">
+       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center p-2">
           <div class="btn-group btn-group-sm" role="group" aria-label="Markdown Toolbar" ref="toolbar">
             <button type="button" class="btn btn-outline-secondary" data-action="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
@@ -26,9 +26,10 @@
             <button type="button" class="btn btn-outline-secondary" data-action="link" title="Link"><i class="bi bi-link"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-action="image" title="Image"><i class="bi bi-image"></i></button>
           </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" ref="togglePreviewBtn">Preview</button>
         </div>
         <div class="card-body p-0">
-          <div ref="previewContainer" class="p-3 border-bottom markdown-body" style="min-height: 150px; max-height: 400px; overflow-y: auto;"></div>
+          <div ref="previewContainer" class="d-none p-3 border-bottom markdown-body" style="min-height: 150px; max-height: 400px; overflow-y: auto;"></div>
           <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" class="form-control border-0 rounded-0 p-3" rows="15" required></textarea>
         </div>
       </div>
@@ -53,7 +54,7 @@
           defaultExport: 'DOMPurify'
         }
       ],
-      async script ({ values, helpers, imports }) {
+      async script ({ values, helpers, imports, signal }) {
         const { marked, DOMPurify } = imports
         const form = helpers.refs('editorForm')
         const titleInput = helpers.refs('titleInput')
@@ -63,7 +64,7 @@
         const submitBtn = helpers.refs('submitBtn')
         const toolbar = helpers.refs('toolbar')
         const previewContainer = helpers.refs('previewContainer')
-
+        const togglePreviewBtn = helpers.refs('togglePreviewBtn')
         const mode = values.mode
 
         // Update preview logic
@@ -72,6 +73,16 @@
         }
 
         contentInput.addEventListener('input', updatePreview)
+
+        togglePreviewBtn.addEventListener('click', () => {
+          previewContainer.classList.toggle('d-none')
+          if (!previewContainer.classList.contains('d-none')) {
+            updatePreview()
+            togglePreviewBtn.classList.replace('btn-outline-primary', 'btn-primary')
+          } else {
+            togglePreviewBtn.classList.replace('btn-primary', 'btn-outline-primary')
+          }
+        }, { signal })
 
         // Toolbar logic
         const insertMarkdown = (startTag, endTag = '') => {
@@ -126,7 +137,7 @@
               break
           }
           updatePreview()
-        })
+        }, { signal })
 
         if (mode === 'edit') {
           slugInput.disabled = true
@@ -208,7 +219,7 @@
           } finally {
             submitBtn.disabled = false
           }
-        })
+        }, { signal })
       }
     }
   })
