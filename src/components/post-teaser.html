@@ -1,0 +1,17 @@
+<template id="post-teaser">
+  <div class="post-teaser py-3">
+    <h2><a href="{{ link }}" class="text-decoration-none text-body">{{ title }}</a></h2>
+    <div class="text-muted mb-2">
+      <small>{{ author }} - {{ date }}</small>
+    </div>
+    <p>{{ description }}</p>
+  </div>
+  <hr class="m-0">
+</template>
+
+<script type="module">
+  import { defineComponent } from 'coralite'
+
+  export default defineComponent({
+  })
+</script>

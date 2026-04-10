@@ -1,23 +1,23 @@
 <template id="admin-editor">
   <form ref="editorForm">
-    <p ref="statusMessage"></p>
+    <p ref="statusMessage" class="text-info"></p>
     
-    <div>
-      <label for="{{ ref_titleInput }}">Title</label>
-      <input type="text" id="{{ ref_titleInput }}" name="title" ref="titleInput" required>
+    <div class="mb-3">
+      <label for="{{ ref_titleInput }}" class="form-label">Title</label>
+      <input type="text" id="{{ ref_titleInput }}" name="title" ref="titleInput" class="form-control" required>
     </div>
 
-    <div>
-      <label for="{{ ref_slugInput }}">Slug</label>
-      <input type="text" id="{{ ref_slugInput }}" name="slug" ref="slugInput" required>
+    <div class="mb-3">
+      <label for="{{ ref_slugInput }}" class="form-label">Slug</label>
+      <input type="text" id="{{ ref_slugInput }}" name="slug" ref="slugInput" class="form-control" required>
     </div>
 
-    <div>
-      <label for="{{ ref_contentInput }}">Content</label>
-      <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" rows="10" required></textarea>
+    <div class="mb-3">
+      <label for="{{ ref_contentInput }}" class="form-label">Content</label>
+      <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" class="form-control" rows="10" required></textarea>
     </div>
 
-    <button type="submit" ref="submitBtn">Save Post</button>
+    <button type="submit" ref="submitBtn" class="btn btn-primary w-100">Save Post</button>
   </form>
 </template>
 
@@ -58,15 +58,19 @@
                 }
                 
                 statusMessage.textContent = 'Loaded successfully.'
+                statusMessage.className = 'text-success'
               } else {
                 statusMessage.textContent = 'Failed to load post.'
+                statusMessage.className = 'text-danger'
               }
             } catch (err) {
               statusMessage.textContent = 'Error loading post.'
+              statusMessage.className = 'text-danger'
               console.error(err)
             }
           } else {
             statusMessage.textContent = 'No slug provided in URL.'
+            statusMessage.className = 'text-warning'
           }
         }
 
@@ -74,6 +78,7 @@
           e.preventDefault()
           
           statusMessage.textContent = 'Saving...'
+          statusMessage.className = 'text-info'
           submitBtn.disabled = true
 
           const payload = {
@@ -94,15 +99,18 @@
 
             if (res.ok) {
               statusMessage.textContent = 'Post saved successfully!'
+              statusMessage.className = 'text-success'
               if (mode === 'create') {
                 window.location.href = `/admin/post/edit.html?slug=${payload.slug}`
               }
             } else {
               const errorData = await res.json()
               statusMessage.textContent = `Error: ${errorData.error || 'Unknown error'}`
+              statusMessage.className = 'text-danger'
             }
           } catch (err) {
             statusMessage.textContent = `Error saving post: ${err.message}`
+            statusMessage.className = 'text-danger'
             console.error(err)
           } finally {
             submitBtn.disabled = false

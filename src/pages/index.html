@@ -5,15 +5,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="/assets/css/styles.css" rel="stylesheet">
-  <title>Coralite - Build for the Web, With the Web!</title>
+  <title>CoralPress</title>
 </head>
 
-<body>
-  <main class="container">
-    <h1 class="text-center">Hello Coralite!</h1>
+<body class="bg-body-secondary">
+  <div class="container bg-body my-4 p-0 shadow-sm rounded overflow-hidden">
+    <!-- Header Section -->
+    <header class="bg-primary text-white text-center pt-5 pb-4 position-relative">
+      <h1 class="mb-0">CoralPress</h1>
+    </header>
 
-    <p class="text-center">Build for the Web, With the Web!</p>
+    <!-- Avatar overlapping header -->
+    <div class="d-flex justify-content-center" style="margin-top: -75px;">
+      <img src="https://via.placeholder.com/150" alt="Avatar" class="rounded-circle border border-5 border-body shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
+    </div>
 
+    <main class="p-4">
+      <!-- Mock Post Teasers -->
+      <post-teaser 
+        title="Welcome to CoralPress" 
+        author="Admin" 
+        date="Oct 20, 2023" 
+        description="This is the first mock post teaser to demonstrate how the component looks when implemented." 
+        link="#">
+      </post-teaser>
+
+      <post-teaser 
+        title="The beauty of static site generators" 
+        author="Coralite User" 
+        date="Oct 21, 2023" 
+        description="Static site generators are incredibly fast and easy to host anywhere." 
+        link="#">
+      </post-teaser>
+    </main>
+
+    <footer class="bg-primary-subtle text-center p-3 mt-4">
+      Built with Coralite - <a href="#">Fork this site</a>.
+    </footer>
+  </div>
 </body>
 
 </html>

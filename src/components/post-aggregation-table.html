@@ -1,6 +1,6 @@
 <template id="post-aggregation-table">
-  <table>
-    <thead>
+  <table class="table table-striped table-hover align-middle mb-0">
+    <thead class="table-light">
       <tr>
         <th>Title</th>
         <th>Path</th>
@@ -23,7 +23,7 @@
         const posts = await aggregation({ path: '/pages/blog', sort: 'desc' })
         
         if (!posts || posts.length === 0) {
-          return '<tr><td colspan="3">No posts found.</td></tr>'
+          return '<tr><td colspan="3" class="text-center py-4">No posts found.</td></tr>'
         }
 
         return posts.map(post => {
@@ -32,8 +32,8 @@
           
           return `<tr>
             <td>${title}</td>
-            <td>${post.path.pathname}</td>
-            <td><a href="/admin/post/edit.html?slug=${slug}">Edit</a></td>
+            <td><code>${post.path.pathname}</code></td>
+            <td><a href="/admin/post/edit.html?slug=${slug}" class="btn btn-sm btn-outline-primary">Edit</a></td>
           </tr>`
         }).join('')
       }
