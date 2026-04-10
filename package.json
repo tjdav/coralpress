@@ -12,6 +12,8 @@
     "cross-env": "^10.1.0"
   },
   "dependencies": {
-    "coralite-plugin-aggregation": "^0.7.2"
+    "coralite-plugin-aggregation": "^0.7.2",
+    "dompurify": "^3.3.3",
+    "marked": "^18.0.0"
   }
 }

@@ -13,8 +13,25 @@
     </div>
 
     <div class="mb-3">
-      <label for="{{ ref_contentInput }}" class="form-label">Content</label>
-      <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" class="form-control" rows="10" required></textarea>
+      <label class="form-label">Content</label>
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center p-2">
+          <div class="btn-group btn-group-sm" role="group" aria-label="Markdown Toolbar" ref="toolbar">
+            <button type="button" class="btn btn-outline-secondary" data-action="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="heading" title="Heading"><i class="bi bi-type-h1"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="quote" title="Blockquote"><i class="bi bi-blockquote-left"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="ul" title="Unordered List"><i class="bi bi-list-ul"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="ol" title="Ordered List"><i class="bi bi-list-ol"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="link" title="Link"><i class="bi bi-link"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="image" title="Image"><i class="bi bi-image"></i></button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div ref="previewContainer" class="p-3 border-bottom markdown-body" style="min-height: 150px; max-height: 400px; overflow-y: auto;"></div>
+          <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" class="form-control border-0 rounded-0 p-3" rows="15" required></textarea>
+        </div>
+      </div>
     </div>
 
     <button type="submit" ref="submitBtn" class="btn btn-primary w-100">Save Post</button>
@@ -26,15 +43,90 @@
 
   export default defineComponent({
     client: {
-      async script ({ values, helpers }) {
+      imports: [
+        {
+          specifier: 'marked',
+          namedExports: ['marked']
+        },
+        {
+          specifier: 'dompurify',
+          defaultExport: 'DOMPurify'
+        }
+      ],
+      async script ({ values, helpers, imports }) {
+        const { marked, DOMPurify } = imports
         const form = helpers.refs('editorForm')
         const titleInput = helpers.refs('titleInput')
         const slugInput = helpers.refs('slugInput')
         const contentInput = helpers.refs('contentInput')
         const statusMessage = helpers.refs('statusMessage')
         const submitBtn = helpers.refs('submitBtn')
+        const toolbar = helpers.refs('toolbar')
+        const previewContainer = helpers.refs('previewContainer')
 
         const mode = values.mode
+
+        // Update preview logic
+        const updatePreview = () => {
+          previewContainer.innerHTML = DOMPurify.sanitize(marked.parse(contentInput.value))
+        }
+
+        contentInput.addEventListener('input', updatePreview)
+
+        // Toolbar logic
+        const insertMarkdown = (startTag, endTag = '') => {
+          const start = contentInput.selectionStart
+          const end = contentInput.selectionEnd
+          const selectedText = contentInput.value.substring(start, end)
+          
+          let textToInsert = selectedText
+          if (!selectedText && endTag) {
+            textToInsert = 'text'
+          }
+
+          const beforeText = contentInput.value.substring(0, start)
+          const afterText = contentInput.value.substring(end)
+
+          contentInput.value = beforeText + startTag + textToInsert + endTag + afterText
+          
+          contentInput.focus()
+          contentInput.selectionStart = start + startTag.length
+          contentInput.selectionEnd = start + startTag.length + textToInsert.length
+        }
+
+        toolbar.addEventListener('click', (e) => {
+          const btn = e.target.closest('button')
+          if (!btn) return
+
+          const action = btn.dataset.action
+          switch (action) {
+            case 'bold':
+              insertMarkdown('**', '**')
+              break
+            case 'italic':
+              insertMarkdown('*', '*')
+              break
+            case 'heading':
+              insertMarkdown('### ', '')
+              break
+            case 'quote':
+              insertMarkdown('> ', '')
+              break
+            case 'ul':
+              insertMarkdown('- ', '')
+              break
+            case 'ol':
+              insertMarkdown('1. ', '')
+              break
+            case 'link':
+              insertMarkdown('[', '](url)')
+              break
+            case 'image':
+              insertMarkdown('![alt text](', ' "Image title")')
+              break
+          }
+          updatePreview()
+        })
 
         if (mode === 'edit') {
           slugInput.disabled = true
@@ -49,6 +141,7 @@
               if (res.ok) {
                 const data = await res.json()
                 contentInput.value = data.content || ''
+                updatePreview()
                 
                 const titleMatch = data.content.match(/<coralite-meta title="(.*?)">/)
                 if (titleMatch && titleMatch[1]) {
