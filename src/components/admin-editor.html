@@ -1,0 +1,114 @@
+<template id="admin-editor">
+  <form ref="editorForm">
+    <p ref="statusMessage"></p>
+    
+    <div>
+      <label for="{{ ref_titleInput }}">Title</label>
+      <input type="text" id="{{ ref_titleInput }}" name="title" ref="titleInput" required>
+    </div>
+
+    <div>
+      <label for="{{ ref_slugInput }}">Slug</label>
+      <input type="text" id="{{ ref_slugInput }}" name="slug" ref="slugInput" required>
+    </div>
+
+    <div>
+      <label for="{{ ref_contentInput }}">Content</label>
+      <textarea id="{{ ref_contentInput }}" name="content" ref="contentInput" rows="10" required></textarea>
+    </div>
+
+    <button type="submit" ref="submitBtn">Save Post</button>
+  </form>
+</template>
+
+<script type="module">
+  import { defineComponent } from 'coralite'
+
+  export default defineComponent({
+    client: {
+      async script ({ values, helpers }) {
+        const form = helpers.refs('editorForm')
+        const titleInput = helpers.refs('titleInput')
+        const slugInput = helpers.refs('slugInput')
+        const contentInput = helpers.refs('contentInput')
+        const statusMessage = helpers.refs('statusMessage')
+        const submitBtn = helpers.refs('submitBtn')
+
+        const mode = values.mode
+
+        if (mode === 'edit') {
+          slugInput.disabled = true
+          const urlParams = new URLSearchParams(window.location.search)
+          const slug = urlParams.get('slug')
+
+          if (slug) {
+            slugInput.value = slug
+            statusMessage.textContent = 'Loading...'
+            try {
+              const res = await fetch(`/api/admin/post?slug=${slug}`)
+              if (res.ok) {
+                const data = await res.json()
+                contentInput.value = data.content || ''
+                
+                const titleMatch = data.content.match(/<coralite-meta title="(.*?)">/)
+                if (titleMatch && titleMatch[1]) {
+                  titleInput.value = titleMatch[1]
+                } else {
+                  titleInput.value = 'Existing Post'
+                }
+                
+                statusMessage.textContent = 'Loaded successfully.'
+              } else {
+                statusMessage.textContent = 'Failed to load post.'
+              }
+            } catch (err) {
+              statusMessage.textContent = 'Error loading post.'
+              console.error(err)
+            }
+          } else {
+            statusMessage.textContent = 'No slug provided in URL.'
+          }
+        }
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault()
+          
+          statusMessage.textContent = 'Saving...'
+          submitBtn.disabled = true
+
+          const payload = {
+            title: titleInput.value,
+            slug: slugInput.value,
+            content: contentInput.value,
+            mode: mode
+          }
+
+          try {
+            const res = await fetch('/api/admin/commit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            })
+
+            if (res.ok) {
+              statusMessage.textContent = 'Post saved successfully!'
+              if (mode === 'create') {
+                window.location.href = `/admin/post/edit.html?slug=${payload.slug}`
+              }
+            } else {
+              const errorData = await res.json()
+              statusMessage.textContent = `Error: ${errorData.error || 'Unknown error'}`
+            }
+          } catch (err) {
+            statusMessage.textContent = `Error saving post: ${err.message}`
+            console.error(err)
+          } finally {
+            submitBtn.disabled = false
+          }
+        })
+      }
+    }
+  })
+</script>

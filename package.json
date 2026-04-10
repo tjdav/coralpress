@@ -1,0 +1,17 @@
+{
+  "name": "website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-import-meta-resolve\" coralite-scripts dev",
+    "build": "coralite-scripts build"
+  },
+  "devDependencies": {
+    "bootstrap": "^5.3.8",
+    "coralite-scripts": "^0.31.5",
+    "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "coralite-plugin-aggregation": "^0.7.2"
+  }
+}

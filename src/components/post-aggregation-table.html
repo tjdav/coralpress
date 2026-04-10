@@ -1,0 +1,42 @@
+<template id="post-aggregation-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Path</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ post_rows }}
+    </tbody>
+  </table>
+</template>
+
+<script type="module">
+  import { defineComponent } from 'coralite'
+  import aggregation from 'coralite-plugin-aggregation'
+
+  export default defineComponent({
+    values: {
+      post_rows: async function() {
+        const posts = await aggregation({ path: '/pages/blog', sort: 'desc' })
+        
+        if (!posts || posts.length === 0) {
+          return '<tr><td colspan="3">No posts found.</td></tr>'
+        }
+
+        return posts.map(post => {
+          const title = (post.values && post.values.title) ? post.values.title : 'Untitled'
+          const slug = post.filename.replace(/\.html$/, '')
+          
+          return `<tr>
+            <td>${title}</td>
+            <td>${post.path.pathname}</td>
+            <td><a href="/admin/post/edit.html?slug=${slug}">Edit</a></td>
+          </tr>`
+        }).join('')
+      }
+    }
+  })
+</script>
