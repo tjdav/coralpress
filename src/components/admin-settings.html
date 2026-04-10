@@ -1,0 +1,205 @@
+<template id="admin-settings">
+  <form ref="settingsForm">
+    <p ref="statusMessage" class="text-info"></p>
+    
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_primaryInput }}" class="form-label">Primary Color</label>
+        <input type="color" id="{{ ref_primaryInput }}" name="primary" ref="primaryInput" class="form-control form-control-color w-100" title="Choose your primary color">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_secondaryInput }}" class="form-label">Secondary Color</label>
+        <input type="color" id="{{ ref_secondaryInput }}" name="secondary" ref="secondaryInput" class="form-control form-control-color w-100" title="Choose your secondary color">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_successInput }}" class="form-label">Success Color</label>
+        <input type="color" id="{{ ref_successInput }}" name="success" ref="successInput" class="form-control form-control-color w-100" title="Choose your success color">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_dangerInput }}" class="form-label">Danger Color</label>
+        <input type="color" id="{{ ref_dangerInput }}" name="danger" ref="dangerInput" class="form-control form-control-color w-100" title="Choose your danger color">
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_warningInput }}" class="form-label">Warning Color</label>
+        <input type="color" id="{{ ref_warningInput }}" name="warning" ref="warningInput" class="form-control form-control-color w-100" title="Choose your warning color">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_infoInput }}" class="form-label">Info Color</label>
+        <input type="color" id="{{ ref_infoInput }}" name="info" ref="infoInput" class="form-control form-control-color w-100" title="Choose your info color">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_lightInput }}" class="form-label">Light Color</label>
+        <input type="color" id="{{ ref_lightInput }}" name="light" ref="lightInput" class="form-control form-control-color w-100" title="Choose your light color">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_darkInput }}" class="form-label">Dark Color</label>
+        <input type="color" id="{{ ref_darkInput }}" name="dark" ref="darkInput" class="form-control form-control-color w-100" title="Choose your dark color">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_bodyBgInput }}" class="form-label">Body Background</label>
+        <input type="color" id="{{ ref_bodyBgInput }}" name="body-bg" ref="bodyBgInput" class="form-control form-control-color w-100" title="Choose body background">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="{{ ref_bodyColorInput }}" class="form-label">Body Text Color</label>
+        <input type="color" id="{{ ref_bodyColorInput }}" name="body-color" ref="bodyColorInput" class="form-control form-control-color w-100" title="Choose body text color">
+      </div>
+    </div>
+
+    <button type="submit" ref="submitBtn" class="btn btn-primary w-100 mt-3">Save Settings</button>
+  </form>
+</template>
+
+<script type="module">
+  import { defineComponent } from 'coralite'
+
+  export default defineComponent({
+    client: {
+      async script ({ helpers }) {
+        const form = helpers.refs('settingsForm')
+        const statusMessage = helpers.refs('statusMessage')
+        const submitBtn = helpers.refs('submitBtn')
+
+        const colorInputs = [
+          { name: 'primary', ref: helpers.refs('primaryInput') },
+          { name: 'secondary', ref: helpers.refs('secondaryInput') },
+          { name: 'success', ref: helpers.refs('successInput') },
+          { name: 'danger', ref: helpers.refs('dangerInput') },
+          { name: 'warning', ref: helpers.refs('warningInput') },
+          { name: 'info', ref: helpers.refs('infoInput') },
+          { name: 'light', ref: helpers.refs('lightInput') },
+          { name: 'dark', ref: helpers.refs('darkInput') },
+          { name: 'body-bg', ref: helpers.refs('bodyBgInput') },
+          { name: 'body-color', ref: helpers.refs('bodyColorInput') }
+        ];
+
+        // Utility to convert hex to rgb (needed for some Bootstrap vars like --bs-primary-rgb)
+        const hexToRgb = (hex) => {
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          return `${r}, ${g}, ${b}`;
+        };
+
+        const updateCssVariables = (name, hexColor) => {
+          if (!hexColor) return;
+          // For body-bg and body-color, BS uses different specific names usually, 
+          // but we will update common names for preview if needed, or just let SCSS compilation handle the permanent change.
+          // We can update the corresponding generic variables on :root to preview changes.
+          document.documentElement.style.setProperty(`--bs-${name}`, hexColor);
+          if (name !== 'body-bg' && name !== 'body-color') {
+            document.documentElement.style.setProperty(`--bs-${name}-rgb`, hexToRgb(hexColor));
+          } else if (name === 'body-bg') {
+            document.documentElement.style.setProperty(`--bs-body-bg`, hexColor);
+            document.documentElement.style.setProperty(`--bs-body-bg-rgb`, hexToRgb(hexColor));
+          } else if (name === 'body-color') {
+            document.documentElement.style.setProperty(`--bs-body-color`, hexColor);
+            document.documentElement.style.setProperty(`--bs-body-color-rgb`, hexToRgb(hexColor));
+          }
+        };
+
+        // Fetch current variables
+        statusMessage.textContent = 'Loading settings...'
+        try {
+          const res = await fetch('/api/admin/settings')
+          if (res.ok) {
+            const data = await res.json()
+            const content = data.content || ''
+            
+            colorInputs.forEach(inputObj => {
+              // Simple regex to extract the hex color, e.g., $primary: #0d6efd;
+              const regex = new RegExp(`\\$${inputObj.name}:\\s*(#[0-9a-fA-F]{3,6})`);
+              const match = content.match(regex);
+              if (match && match[1]) {
+                // Set the color input value (must be 6 chars hex)
+                let hex = match[1];
+                if (hex.length === 4) {
+                   hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
+                }
+                inputObj.ref.value = hex;
+                updateCssVariables(inputObj.name, hex);
+              } else {
+                 // Try to fallback to current computed style if not found in SCSS
+                 const computedStr = getComputedStyle(document.documentElement).getPropertyValue(`--bs-${inputObj.name}`);
+                 if (computedStr) {
+                    // computed might be #hex or rgb(), input type="color" requires #hex
+                    // If it's already #hex, good. We just leave it as default or what the browser sets
+                 }
+              }
+            });
+            statusMessage.textContent = 'Settings loaded successfully.'
+            statusMessage.className = 'text-success'
+          } else {
+             statusMessage.textContent = 'Failed to load settings.'
+             statusMessage.className = 'text-danger'
+          }
+        } catch (err) {
+          statusMessage.textContent = 'Error loading settings.'
+          statusMessage.className = 'text-danger'
+          console.error(err)
+        }
+
+        // Add real-time preview event listeners
+        colorInputs.forEach(inputObj => {
+          inputObj.ref.addEventListener('input', (e) => {
+            updateCssVariables(inputObj.name, e.target.value);
+          });
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault()
+          
+          statusMessage.textContent = 'Saving settings...'
+          statusMessage.className = 'text-info'
+          submitBtn.disabled = true
+
+          const variables = {};
+          colorInputs.forEach(inputObj => {
+            variables[inputObj.name] = inputObj.ref.value;
+          });
+
+          const payload = {
+            variables
+          }
+
+          try {
+            const res = await fetch('/api/admin/settings', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            })
+
+            if (res.ok) {
+              statusMessage.textContent = 'Settings saved successfully! It may take a minute for the build to deploy the updated SCSS.'
+              statusMessage.className = 'text-success'
+            } else {
+              const errorData = await res.json()
+              statusMessage.textContent = `Error: ${errorData.error || 'Unknown error'}`
+              statusMessage.className = 'text-danger'
+            }
+          } catch (err) {
+            statusMessage.textContent = `Error saving settings: ${err.message}`
+            statusMessage.className = 'text-danger'
+            console.error(err)
+          } finally {
+            submitBtn.disabled = false
+          }
+        })
+      }
+    }
+  })
+</script>

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="/assets/css/styles.css" rel="stylesheet">
-  <title>Admin - CoralPress</title>
+  <title>Settings - CoralPress Admin</title>
 </head>
 
 <body class="bg-body-secondary">
@@ -17,16 +17,11 @@
 
     <main class="p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Dashboard</h2>
-        <div>
-          <a href="/admin/settings.html" class="btn btn-outline-secondary me-2">Settings</a>
-          <a href="/admin/post/create.html" class="btn btn-primary">Create New Post</a>
-        </div>
+        <h2>Theme Settings</h2>
+        <a href="/admin/" class="btn btn-outline-secondary">Back to Dashboard</a>
       </div>
 
-      <div class="table-responsive">
-        <post-aggregation-table></post-aggregation-table>
-      </div>
+      <admin-settings></admin-settings>
     </main>
 
     <footer class="bg-primary-subtle text-center p-3 mt-4">
