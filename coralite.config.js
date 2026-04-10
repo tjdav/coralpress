@@ -7,8 +7,8 @@ export default defineConfig({
   pages: 'src/pages',
   components: 'src/components',
   styles: {
-    type: 'css',
-    input: 'src/css'
+    type: 'scss',
+    input: 'src/scss'
   },
   plugins: [
     aggregation
