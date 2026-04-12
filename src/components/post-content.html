@@ -1,0 +1,31 @@
+<template id="post-content">
+  {{ content }}
+</template>
+
+<script type="module">
+  import { defineComponent } from 'coralite'
+  import StarterKit from '@tiptap/starter-kit'
+  import Link from '@tiptap/extension-link'
+  import Image from '@tiptap/extension-image'
+  import TextAlign from '@tiptap/extension-text-align'
+  import { generateHTML } from '@tiptap/html'
+  import tipTapContent from '../data/content.json' with { type: 'json' }
+
+  export default defineComponent({
+    tokens: {
+      content (values) {
+        const postData = tipTapContent[values.pagePath]
+
+        if (postData && postData.content) {
+          return generateHTML(postData.content, [
+            StarterKit,
+            Link.configure({ openOnClick: false }),
+            Image,
+            TextAlign.configure({ types: ['heading', 'paragraph'] })
+          ])
+        }
+        return ''
+      }
+    }
+  })
+</script>

@@ -12,7 +12,7 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ error: "Invalid slug format" }), { status: 400 });
     }
 
-    const path = `website/src/pages/blog/${slug}.html`;
+    const dataPath = `website/src/data/content.json`;
 
     const GITHUB_TOKEN = env.GITHUB_TOKEN;
     const REPO_OWNER = env.REPO_OWNER;
@@ -22,7 +22,7 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ error: "Missing GitHub environment variables" }), { status: 500 });
     }
 
-    const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
+    const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${dataPath}`;
 
     const res = await fetch(apiUrl, {
       headers: {
@@ -34,7 +34,7 @@ export async function onRequestGet(context) {
 
     if (!res.ok) {
       if (res.status === 404) {
-        return new Response(JSON.stringify({ error: "Post not found" }), { status: 404 });
+        return new Response(JSON.stringify({ error: "Data file not found" }), { status: 404 });
       }
       const err = await res.text();
       return new Response(JSON.stringify({ error: `GitHub API Error: ${err}` }), { status: res.status });
@@ -43,12 +43,20 @@ export async function onRequestGet(context) {
     const fileData = await res.json();
     
     // GitHub contents API returns base64 encoded content
-    const decodedContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+    const decodedContent = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+    const contentData = JSON.parse(decodedContent);
 
-    // Return the raw content, assuming we extract title/content on the client or the file includes it
+    const pagePath = `blog/${slug}.html`;
+    const postData = contentData[pagePath];
+
+    if (!postData) {
+      return new Response(JSON.stringify({ error: "Post not found in data" }), { status: 404 });
+    }
+
     return new Response(JSON.stringify({ 
       slug: slug,
-      content: decodedContent 
+      title: postData.metadata?.title || '',
+      content: postData.content
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err) {
