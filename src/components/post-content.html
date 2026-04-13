@@ -9,6 +9,7 @@
   import Image from '@tiptap/extension-image'
   import TextAlign from '@tiptap/extension-text-align'
   import { generateHTML } from '@tiptap/html'
+  import { CodeHighlight } from '../utils/tiptap-code-highlight.js'
   import tipTapContent from '../data/content.json' with { type: 'json' }
 
   export default defineComponent({
@@ -21,7 +22,8 @@
             StarterKit,
             Link.configure({ openOnClick: false }),
             Image,
-            TextAlign.configure({ types: ['heading', 'paragraph'] })
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            CodeHighlight
           ])
         }
         return ''

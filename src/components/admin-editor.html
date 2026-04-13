@@ -46,6 +46,7 @@
             <button type="button" class="btn btn-outline-secondary" data-action="hr" title="Horizontal Rule"><i class="bi bi-hr"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-action="link" title="Link"><i class="bi bi-link"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-action="image" title="Image"><i class="bi bi-image"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="codeBlock" title="Code Block"><i class="bi bi-code-slash"></i></button>
           </div>
         </div>
         <div class="card-body p-0">
@@ -83,10 +84,14 @@
         {
           specifier: '@tiptap/extension-text-align',
           defaultExport: 'TextAlign'
+        },
+        {
+          specifier: '../utils/tiptap-code-highlight.js',
+          namedExports: ['CodeHighlight']
         }
       ],
       async script ({ values, helpers, imports, signal }) {
-        const { Editor, StarterKit, Link, Image, TextAlign } = imports
+        const { Editor, StarterKit, Link, Image, TextAlign, CodeHighlight } = imports
         const form = helpers.refs('editorForm')
         const titleInput = helpers.refs('titleInput')
         const slugInput = helpers.refs('slugInput')
@@ -105,7 +110,8 @@
             StarterKit,
             Link.configure({ openOnClick: false }),
             Image,
-            TextAlign.configure({ types: ['heading', 'paragraph'] })
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            CodeHighlight
           ],
           content: '',
           editorProps: {
@@ -177,6 +183,9 @@
               if (imgUrl) {
                 editor.chain().focus().setImage({ src: imgUrl }).run()
               }
+              break
+            case 'codeBlock':
+              editor.chain().focus().insertContent({ type: 'codeHighlight' }).run()
               break
           }
         }
